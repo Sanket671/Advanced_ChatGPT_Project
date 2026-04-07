@@ -118,7 +118,7 @@ class ProcessResponse(BaseModel):
     optimized_query: str
     is_toxic: bool
     status: str
-    confidence: Optional[Dict[str, float]] = None
+    confidence: Dict[str, float]
 
 # ============================================================================
 # MODEL LOADING & CACHING
@@ -158,7 +158,7 @@ def _get_toxicity_pipeline():
                 logger.info("Loading toxicity detection model...")
                 _models_cache['toxicity'] = pipeline(
                     'text-classification',
-                    model='michellejieli/NSFW_text_classifier',
+                    model='unitary/toxic-bert',
                     device=-1  # CPU mode
                 )
     return _models_cache['toxicity']
@@ -347,7 +347,11 @@ def detect_toxicity(text: str) -> Dict[str, any]:
         # Classify as toxic if label is not "safe" (depends on model)
         label = result['label']
         score = round(result['score'], 3)
-        is_toxic = label.lower() != 'safe'
+        label = result['label'].lower()
+        score = result['score']
+
+        # toxic-bert labels: toxic / non-toxic
+        is_toxic = label == 'toxic' and score > 0.85
         
         if is_toxic:
             logger.warning(f"Toxic content detected (confidence: {score})")
@@ -408,16 +412,18 @@ def process_message(text: str) -> Dict:
         "original": text,
         "processed": processed_text,
         "sentiment": sentiment_result['mapped'],
-        "sentiment_confidence": sentiment_result['score'],
         "intent": intent_result['intent'],
-        "intent_confidence": intent_result['top_score'],
         "keywords": keywords,
         "optimized_query": optimized_query,
         "is_toxic": toxicity_result['is_toxic'],
-        "toxicity_confidence": toxicity_result['score'],
-        "status": "success"
-    }
-    
+        "status": "success",
+        "confidence": {
+            "sentiment": sentiment_result['score'],
+            "intent": intent_result['top_score'],
+            "toxicity": toxicity_result['score']
+        }
+    }    
+
     logger.info(
         f"Message processed. Sentiment: {sentiment_result['mapped']}, "
         f"Intent: {intent_result['intent']}, Toxic: {toxicity_result['is_toxic']}"

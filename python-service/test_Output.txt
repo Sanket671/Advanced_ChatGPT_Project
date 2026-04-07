@@ -58,3 +58,12 @@ test_app.py::TestSentimentAnalysis::test_sentiment_positive
 =============================== 42 passed, 1 warning in 97.09s (0:01:37) ===============================
 
 (venv) D:\__ChatGPT_Project_Final\python-service>
+
+🧪 Test Coverage Breakdown
+Unit Tests (25 tests)
+Sentiment detection (5 tests)
+Intent classification (4 tests)
+Keyword extraction (5 tests)
+Query optimization (4 tests)
+Toxicity detection (3 tests)
+Integration Tests (8 tests)

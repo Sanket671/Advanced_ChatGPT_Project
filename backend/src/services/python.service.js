@@ -23,7 +23,7 @@ async function processPayload(payload) {
     console.log("Full Payload : ", payload)
     const response = await pythonClient.post('/process', {message: payload.content});
     if(!response) return "AI Temporarily Unavailable";
-    else console.log(response)
+    else console.log("🐍 Python Response Data:", response.data);
     console.log('✅ Python service returned successfully');
     return response.data;
   } catch (error) {
