@@ -18,18 +18,23 @@ Architecture:
 """
 
 from flask import Flask, request, jsonify
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 from sklearn.feature_extraction.text import TfidfVectorizer
 from pydantic import field_validator
 from werkzeug.exceptions import BadRequest
-from transformers import pipeline
+
 import logging
 import os
 import re
 from typing import Dict, List, Optional
 from functools import lru_cache
 import threading
+
+os.environ["HF_HOME"] = "./models_cache"
+os.environ["TRANSFORMERS_CACHE"] = "./models_cache"
+
+from transformers import pipeline
 
 # ============================================================================
 # CONFIGURATION & SETUP
@@ -109,9 +114,9 @@ class ProcessRequest(BaseModel):
         return v.strip()
 
 class ProcessResponse(BaseModel):
-    """Validation model for process endpoint responses."""
     original: str
     processed: str
+    summary: str
     sentiment: str
     intent: str
     keywords: List[str]
@@ -162,6 +167,18 @@ def _get_toxicity_pipeline():
                     device=-1  # CPU mode
                 )
     return _models_cache['toxicity']
+
+def _get_summarizer():
+    if 'summarizer' not in _models_cache:
+        with _model_lock:
+            if 'summarizer' not in _models_cache:
+                logger.info("Loading summarization model...")
+                _models_cache['summarizer'] = pipeline(
+                    "summarization",
+                    model="sshleifer/distilbart-cnn-12-6",
+                    device=-1
+                )
+    return _models_cache['summarizer']
 
 # ============================================================================
 # MODULAR PROCESSING FUNCTIONS
@@ -266,6 +283,7 @@ def extract_keywords(text: str, top_n: int = 3) -> List[str]:
 
         vectorizer = TfidfVectorizer(
             stop_words='english',
+            ngram_range=(1, 2),   # 🔥 BIG IMPROVEMENT
             max_features=top_n
         )
 
@@ -280,52 +298,49 @@ def extract_keywords(text: str, top_n: int = 3) -> List[str]:
 
         # 🔥 Extra safety: if all words are weak → return []
         if len(keywords) <= 1:
-            return []
-
-        return keywords
+            # fallback: basic split
+            words = re.findall(r'\b\w+\b', text.lower())
+            words = [w for w in words if w not in STOPWORDS and len(w) > 3]
+            return words[:top_n]
+        return list(set(keywords))
 
     except Exception as e:
         logger.warning(f"Keyword extraction error: {str(e)}")
         return []
 
 
-def optimize_query(text: str, keywords: List[str]) -> str:
+def optimize_query(text: str, keywords: List[str], intent: str) -> str:
     """
-    Generate optimized query for semantic search.
-    Expands keywords with contextual synonyms.
-    
-    Args:
-        text (str): Original text
-        keywords (List[str]): Extracted keywords
-        
-    Returns:
-        str: Optimized query for vector search
+    General-purpose query optimization for RAG (no hardcoding)
+    - Uses keywords
+    - Cleans sentence
+    - Boosts semantic meaning
     """
     try:
-        if not text or not text.strip():
+        if not text:
             return ""
-        
-        # Start with normalized original
-        optimized = text.strip()
-        
-        # For each keyword, add expansion if available
-        for keyword in keywords:
-            for key, expansions in QUERY_EXPANSIONS.items():
-                if keyword.lower() in expansions:
-                    # Add all expanded terms
-                    expansion_str = ' '.join(exp for exp in expansions if exp != keyword.lower())
-                    optimized += f" {expansion_str}"
-                    break
-        
-        # Clean up and limit
-        optimized = ' '.join(optimized.split())[:500]
-        
-        logger.info(f"Query optimized: {optimized[:60]}...")
-        return optimized
-    except Exception as e:
-        logger.warning(f"Query optimization error: {str(e)}")
-        return text.strip()[:500]
 
+        # Step 1: Clean text (remove noise words)
+        words = re.findall(r'\b\w+\b', text.lower())
+        filtered_words = [w for w in words if w not in STOPWORDS and len(w) > 2]
+
+        # Step 2: Combine keywords + filtered words
+        important_words = list(dict.fromkeys(keywords + filtered_words))
+        final_words = important_words.copy()
+
+        if intent == "technical_question":
+            final_words.append("troubleshooting error fix solution")
+
+        elif intent == "emotional_support":
+            final_words.append("feelings stress help support advice")
+
+        # Step 3: Limit size (important for vector search)
+        optimized = " ".join(final_words[:15])
+
+        return optimized
+
+    except Exception:
+        return text[:300]
 
 def detect_toxicity(text: str) -> Dict[str, any]:
     """
@@ -345,12 +360,9 @@ def detect_toxicity(text: str) -> Dict[str, any]:
         result = toxicity_pipeline(text[:512])[0]
         
         # Classify as toxic if label is not "safe" (depends on model)
-        label = result['label']
-        score = round(result['score'], 3)
         label = result['label'].lower()
-        score = result['score']
+        score = round(result['score'], 3)
 
-        # toxic-bert labels: toxic / non-toxic
         is_toxic = label == 'toxic' and score > 0.85
         
         if is_toxic:
@@ -367,8 +379,13 @@ def detect_toxicity(text: str) -> Dict[str, any]:
         return {'is_toxic': False, 'score': 1.0, 'label': 'Safe'}
 
 
-
-
+def summarize_text(text: str) -> str:
+    try:
+        summarizer = _get_summarizer()
+        result = summarizer(text[:1024], max_length=100, min_length=30, do_sample=False)
+        return result[0]['summary_text']
+    except:
+        return text[:200]
 # ============================================================================
 # MAIN PROCESSING PIPELINE
 # ============================================================================
@@ -392,25 +409,39 @@ def process_message(text: str) -> Dict:
         raise ValueError("Message must be a non-empty string")
     
     text = text.strip()
+    text = text.lower()
     if not text:
         raise ValueError("Message cannot be empty")
     
     if len(text) > 10000:
         raise ValueError("Message exceeds maximum length of 10000 characters")
     
+    summary = summarize_text(text) if len(text) > 300 else text
+
+    logger.info(f"SUMMARY GENERATED: {summary}")
+
     logger.info(f"Processing message: {text[:60]}...")
     
     # Process through all stages
-    processed_text = text.upper()
-    sentiment_result = get_sentiment(text)
-    intent_result = detect_intent(text)
+    processed_text = text
     keywords = extract_keywords(text)
-    optimized_query = optimize_query(text, keywords)
-    toxicity_result = detect_toxicity(text)
+
+    # Smart skip for short inputs
+    if len(text.split()) < 3:
+        sentiment_result = {'mapped': 'neutral', 'score': 1.0}
+        intent_result = {'intent': 'general', 'top_score': 1.0}
+        toxicity_result = {'is_toxic': False, 'score': 1.0}
+    else:
+        sentiment_result = get_sentiment(text)
+        intent_result = detect_intent(text)
+        toxicity_result = detect_toxicity(text)
+
+    optimized_query = optimize_query(text, keywords, intent_result['intent'])
     
     result = {
         "original": text,
         "processed": processed_text,
+        "summary": summary,
         "sentiment": sentiment_result['mapped'],
         "intent": intent_result['intent'],
         "keywords": keywords,
@@ -549,6 +580,12 @@ if __name__ == "__main__":
     logger.info("📝 API Endpoint: POST /process")
     logger.info("💓 Health Check: GET /health")
     logger.info("=" * 70)
+
+    logger.info("Preloading models...")
+    _get_summarizer()
+    _get_sentiment_pipeline()
+    _get_intent_classifier()
+    _get_toxicity_pipeline()
     
     app.run(
         host="0.0.0.0",
