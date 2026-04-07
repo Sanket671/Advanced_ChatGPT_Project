@@ -1,0 +1,60 @@
+(venv) D:\__ChatGPT_Project_Final\python-service>pytest test_app.py -v
+========================================= test session starts ==========================================
+platform win32 -- Python 3.11.0, pytest-7.4.4, pluggy-1.6.0 -- D:\__ChatGPT_Project_Final\python-service\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\__ChatGPT_Project_Final\python-service
+plugins: cov-4.1.0
+collected 42 items                                                                                      
+
+test_app.py::TestSentimentAnalysis::test_sentiment_positive PASSED                                [  2%]
+test_app.py::TestSentimentAnalysis::test_sentiment_negative PASSED                                [  4%]
+test_app.py::TestSentimentAnalysis::test_sentiment_neutral PASSED                                 [  7%]
+test_app.py::TestSentimentAnalysis::test_sentiment_empty_string PASSED                            [  9%]
+test_app.py::TestSentimentAnalysis::test_sentiment_whitespace_only PASSED                         [ 11%]
+test_app.py::TestIntentDetection::test_intent_greeting PASSED                                     [ 14%]
+test_app.py::TestIntentDetection::test_intent_technical PASSED                                    [ 16%]
+test_app.py::TestIntentDetection::test_intent_emotional PASSED                                    [ 19%]
+test_app.py::TestIntentDetection::test_intent_general PASSED                                      [ 21%]
+test_app.py::TestIntentDetection::test_intent_empty_string PASSED                                 [ 23%]
+test_app.py::TestKeywordExtraction::test_keywords_extraction PASSED                               [ 26%]
+test_app.py::TestKeywordExtraction::test_keywords_no_stopwords PASSED                             [ 28%]
+test_app.py::TestKeywordExtraction::test_keywords_empty_string PASSED                             [ 30%]
+test_app.py::TestKeywordExtraction::test_keywords_short_words_filtered PASSED                     [ 33%]
+test_app.py::TestKeywordExtraction::test_keywords_duplicates_counted PASSED                       [ 35%]
+test_app.py::TestQueryOptimization::test_query_optimization_expansion PASSED                      [ 38%]
+test_app.py::TestQueryOptimization::test_query_optimization_no_keywords PASSED                    [ 40%]
+test_app.py::TestQueryOptimization::test_query_optimization_empty_text PASSED                     [ 42%]
+test_app.py::TestQueryOptimization::test_query_optimization_max_length PASSED                     [ 45%]
+test_app.py::TestToxicityDetection::test_toxicity_clean_message PASSED                            [ 47%]
+test_app.py::TestToxicityDetection::test_toxicity_empty_string PASSED                             [ 50%]
+test_app.py::TestToxicityDetection::test_toxicity_response_structure PASSED                       [ 52%]
+test_app.py::TestMainPipeline::test_process_message_valid PASSED                                  [ 54%]
+test_app.py::TestMainPipeline::test_process_message_preserves_original PASSED                     [ 57%]
+test_app.py::TestMainPipeline::test_process_message_uppercase_processed PASSED                    [ 59%]
+test_app.py::TestMainPipeline::test_process_message_empty_raises_error PASSED                     [ 61%]
+test_app.py::TestMainPipeline::test_process_message_whitespace_raises_error PASSED                [ 64%]
+test_app.py::TestMainPipeline::test_process_message_non_string_raises_error PASSED                [ 66%]
+test_app.py::TestMainPipeline::test_process_message_exceeds_max_length PASSED                     [ 69%]
+test_app.py::TestMainPipeline::test_process_message_response_types PASSED                         [ 71%]
+test_app.py::TestFlaskAPI::test_process_endpoint_valid_request PASSED                             [ 73%]
+test_app.py::TestFlaskAPI::test_process_endpoint_missing_message PASSED                           [ 76%]
+test_app.py::TestFlaskAPI::test_process_endpoint_empty_message PASSED                             [ 78%]
+test_app.py::TestFlaskAPI::test_process_endpoint_not_json PASSED                                  [ 80%]
+test_app.py::TestFlaskAPI::test_process_endpoint_malformed_json PASSED                            [ 83%]
+test_app.py::TestFlaskAPI::test_health_endpoint PASSED                                            [ 85%]
+test_app.py::TestFlaskAPI::test_404_endpoint PASSED                                               [ 88%]
+test_app.py::TestFlaskAPI::test_method_not_allowed PASSED                                         [ 90%]
+test_app.py::TestEndToEndScenarios::test_greeting_scenario PASSED                                 [ 92%]
+test_app.py::TestEndToEndScenarios::test_technical_problem_scenario PASSED                        [ 95%]
+test_app.py::TestEndToEndScenarios::test_emotional_support_scenario PASSED                        [ 97%]
+test_app.py::TestEndToEndScenarios::test_multiple_requests_consistency PASSED                     [100%]
+
+=========================================== warnings summary ===========================================
+test_app.py::TestSentimentAnalysis::test_sentiment_positive
+  D:\__ChatGPT_Project_Final\python-service\venv\Lib\site-packages\torch\_utils.py:831: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+    return self.fget.__get__(instance, owner)()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== 42 passed, 1 warning in 97.09s (0:01:37) ===============================
+
+(venv) D:\__ChatGPT_Project_Final\python-service>
