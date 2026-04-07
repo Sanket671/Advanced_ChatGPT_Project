@@ -1,0 +1,32 @@
+Note :- if you want "•" symbol, then just type bullet and then Enter or Tab button.
+Run Backend => npm run dev
+
+npm init -y
+npm i express mongoose jsonwebtoken bcryptjs dotenv cookie-parser socket.io cookie @google/genai @pinecone-database/pinecone
+npm i 
+{
+    pinecone => Vector DB,
+    socket.io => Web Socket
+}
+To run Backend => 
+
+npx nodeon server.js 
+                  OR 
+npm run dev(where dev = "npx nodemon server.js" in scripts of package.json)
+
+VIMP :- user gives token in headers in socket.io postman => we will parse it using cookie.parse(socket.handshake.headers.cookie) => Authorize it if it is valid ? => if yes, then only connect to socket.io Server
+
+Most VIMP :- copy token till ; from cookies in postman and pasting that token in socket.io postman => localhost:3000 => Headers Section => key:Cookie or cookie => value:"paste token taken from cookie in postman"
+
+Note :- Use Gemini 2.0 flash (even if it doesn't give that much perfect answer, but it has 1 million free tokens to use, so Gemini API key will not expire too much early => so that you can use that api key for long time in testing while building project) 
+
+Pinecone => Vector DB (we are using pinecone website)
+
+After converting text into vectors using embeddings => now we are storing them in pinecone Vector DB.
+
+• Pinecone doesn’t store vectors in insertion sequence.
+- It stores vectors for semantic similarity search.
+- When you query, results are returned based on similarity to your query vector, not the order you inserted them.
+- For chronological chat order, always rely on your database (e.g., MongoDB).
+- Use Pinecone only to fetch relevant past messages, then merge with DB history if you want proper conversation flow.
+- Essentially: Pinecone = relevance, MongoDB = sequence.
