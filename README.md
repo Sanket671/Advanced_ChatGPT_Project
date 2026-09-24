@@ -3,6 +3,14 @@
 **A Production-Grade AI Chat Application** with real‑time messaging, dual‑layer memory, AI preprocessing, and semantic search.  
 Built to demonstrate **microservices, WebSocket communication, enterprise security, and intelligent memory management**.
 
+Beginner Friendly Project Understanding - https://docs.google.com/document/d/12PvnkwghTUH8qQzoqYf-EeaNconuvUOU/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
+
+Phase 1 : Project Description - https://docs.google.com/document/d/1tcksq1Ox6F2qRt4UTBiI8MnjbtBPImLM/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
+
+Phase 2 : Internal Detailings of how we built - https://docs.google.com/document/d/1kV3ppduhrJZNAqEs0ZFF_qrij12lYNNn/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
+
+Phase 3 : Interview Perspective Que - https://docs.google.com/document/d/1CTTRIvO73KxA6HNtDHxkY9n_qIRyRU_g/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
+
 ---
 
 ## 🏗 System Architecture (Full View)
