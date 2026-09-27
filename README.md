@@ -3,6 +3,8 @@
 **A Production-Grade AI Chat Application** with real‑time messaging, dual‑layer memory, AI preprocessing, and semantic search.  
 Built to demonstrate **microservices, WebSocket communication, enterprise security, and intelligent memory management**.
 
+RAG_Project 1.5 hrs Prep - https://docs.google.com/document/d/1rVKhZTudYl9Yp1th9ZPizg8aWRu6_zOf/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
+
 Beginner Friendly Project Understanding - https://docs.google.com/document/d/12PvnkwghTUH8qQzoqYf-EeaNconuvUOU/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
 
 Phase 1 : Project Description - https://docs.google.com/document/d/1tcksq1Ox6F2qRt4UTBiI8MnjbtBPImLM/edit?usp=drivesdk&ouid=116178795621477601951&rtpof=true&sd=true
